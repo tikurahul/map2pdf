@@ -1,0 +1,231 @@
+package org.gis.pdf.servlets;
+
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.imageio.ImageIO;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.gis.pdf.data.FeatureLayer;
+import org.gis.pdf.data.MosaicCollection;
+import org.gis.pdf.data.OverlayLayer;
+import org.gis.pdf.data.Overlayable;
+import org.gis.pdf.json.JSONArray;
+import org.gis.pdf.json.JSONException;
+import org.gis.pdf.json.JSONObject;
+import org.gis.pdf.util.ImageUtil;
+import org.gis.pdf.util.PDFEngine;
+
+public class PDFServlet extends HttpServlet {
+  
+	private static final long serialVersionUID = 1L;
+
+	private static final Logger logger = Logger.getLogger(PDFServlet.class.getName());
+	
+	private String path= null;
+	
+	public void init() throws ServletException {
+	  super.init();
+	  path = this.getServletContext().getRealPath("/");
+	}
+	
+	public String getPath(){
+    return path;
+  }
+	
+	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	  List<String> errors = new ArrayList<String> ();
+	  OutputStream stream = null;
+	  PrintWriter writer = null;
+	  //check request format
+	  String f = request.getParameter("f");
+	  f = f==null ? "pdf" : f;
+	  //check format
+	  if(!Format.isValidFormat(f)){
+	    errors.add("Invalid Request format.");
+	    request.setAttribute("errors", errors);
+	    this.getServletContext().getRequestDispatcher("/errors.jsp").forward(request, response);
+	  }
+	  
+	  try{
+		  //get tileLayers and dynamicLayers from 'rasters'
+		  
+		  //tileUrls
+		  List<MosaicCollection> mLayers = new ArrayList<MosaicCollection>();
+		  //dynamicUrls
+		  List<OverlayLayer> oLayers = new ArrayList<OverlayLayer>();
+		  
+		  String jRasters = request.getParameter("layers");
+		  if(!PDFMacros.isEmpty(jRasters)){
+			//read all tileLayers and dynamicLayers
+			try{
+				JSONObject rasters = new JSONObject(jRasters);
+				mLayers = MosaicCollection.fromJson(rasters.getJSONArray("tileLayers"));
+				oLayers = OverlayLayer.fromJson(rasters.getJSONArray("dynamicLayers"));
+			}catch(Exception e){
+				String message = "Invalid input json 'layers'.";
+				errors.add(message);
+				throw new Exception(message);
+			}
+		  }else {
+			  String message = "No Layers Specified.";
+			  errors.add(message);
+			  throw new Exception(message);
+		  }
+		  
+		  //get featureLayers (optional)
+		  List<FeatureLayer> fLayers = new ArrayList<FeatureLayer>();
+		  
+		  String jVectors = request.getParameter("features");
+		  if(!PDFMacros.isEmpty(jVectors)){
+  			try{
+  				JSONArray vectors = new JSONArray(jVectors);
+  				fLayers = FeatureLayer.fromJson(vectors);
+  			}catch(Exception e){
+  				String message = "No Features Specified.";
+  				errors.add(message);
+  				throw new Exception(message);
+  			}
+		  }
+		  
+		  //begin creating PDF
+		  List<Overlayable> overlayLayers = new ArrayList<Overlayable>();
+		  for(int i=0; i<mLayers.size(); i++){
+			  overlayLayers.add(mLayers.get(i));
+		  }
+		  for(int i=0; i<oLayers.size(); i++){
+			  overlayLayers.add(oLayers.get(i));
+		  }
+		  for(int i=0; i<fLayers.size(); i++){
+			  overlayLayers.add(fLayers.get(i));
+		  }
+		  
+		  //Begin Overlay
+		  ImageUtil util = new ImageUtil();
+		  BufferedImage image = util.overlayImages(overlayLayers);
+		  
+		  //Generate Response
+		  UUID imageId = UUID.randomUUID();
+		  ImageIO.write(image, "PNG", new File(path + "/images/" + imageId.toString() + ".png"));
+		  //Generating Image URL
+		  StringBuffer requestUrl =request.getRequestURL();
+		  
+		  String imageUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/")) + "/images/" + imageId.toString() + ".png";
+		  String pageTitle = request.getParameter("pageTitle");
+		  pageTitle = PDFMacros.isEmpty(pageTitle) ? "Map2PDF" : pageTitle;
+		  
+		  if(f.equalsIgnoreCase(Format.IMAGE.toString())){
+		    //return image
+		    response.setContentType("image/png");
+		    stream = response.getOutputStream();
+		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		    ImageIO.write(image, "PNG", baos);
+		    stream.write(baos.toByteArray());
+		    return;
+		  } else {
+		    //Generate PDF		    
+		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		    PDFEngine engine = new PDFEngine(new URL(imageUrl), baos, pageTitle);
+		    engine.createPDF();
+		    String pdfUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/")) + "/pdf/" + imageId.toString() + ".pdf";
+		    if(f.equalsIgnoreCase(Format.PDF.toString())){
+		      response.setContentType("application/pdf");
+	        stream = response.getOutputStream();
+	        stream.write(baos.toByteArray());
+		      return;
+		    } else {
+		      //JSON / PJSON
+		      //Write PDF to file
+		      FileOutputStream fos = new FileOutputStream(path + "/pdf/" + imageId.toString() + ".pdf");
+		      fos.write(baos.toByteArray());
+		      fos.close();
+		      //Writing to file Complete
+		      response.setContentType("text/plain");
+		      String callback = request.getParameter("callback");
+		      writer = response.getWriter();
+		      JSONObject pdfJson = new JSONObject();
+		      pdfJson.put("pdfUrl", pdfUrl);
+		      pdfJson.put("imageUrl", imageUrl);
+		      if(Format.JSON.toString().equalsIgnoreCase(f)){
+		        if(PDFMacros.isEmpty(callback)){
+		          writer.write(pdfJson.toString());
+		        }else {
+		          writer.write(callback + "(" + pdfJson.toString() + ");");
+		        }
+		      } else {
+		        if(PDFMacros.isEmpty(callback)){
+              writer.write(pdfJson.toString(2));
+            }else {
+              writer.write(callback + "(" + pdfJson.toString(2) + ");");
+            }
+		      }
+		      return;
+		    }
+		  }
+	  }catch (Exception e){
+		  logger.log(Level.SEVERE, e.getMessage());
+		  if(!(Format.JSON.toString().equalsIgnoreCase(f) || Format.PJSON.toString().equalsIgnoreCase(f))){
+		    //redirect to error.jsp
+		    errors.add(e.getMessage());
+		    request.setAttribute("errors", errors);
+	      this.getServletContext().getRequestDispatcher("/errors.jsp").forward(request, response);
+		    return;
+		  }
+		  else {
+		    //return errors as json
+		    response.setContentType("text/plain");
+		    writer = response.getWriter();
+		    JSONArray jerrors = new JSONArray(errors);
+		    String callback = request.getParameter("callback");
+		    if(Format.JSON.toString().equalsIgnoreCase(f)){
+          if(PDFMacros.isEmpty(callback)){
+            writer.write(jerrors.toString());
+          }else {
+            writer.write(callback + "(" + jerrors.toString() + ");");
+          }
+        } else {
+          if(PDFMacros.isEmpty(callback)){
+            try {
+              writer.write(jerrors.toString(2));
+            } catch (JSONException jsonException) {
+              //ignore
+            }
+          }else {
+            try {
+              writer.write(callback + "(" + jerrors.toString(2) + ");");
+            } catch (JSONException ex) {
+              //ignore
+            }
+          }
+        }
+		  }
+	  } finally {
+	    if(stream != null){
+	      stream.close();
+	    }
+	    if(writer != null){
+	      writer.close();
+	    }
+	  }
+	}
+
+}
+
+
+
+
+
