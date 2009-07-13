@@ -26,7 +26,7 @@ public class Tester {
     testOverlays3();
   }
   
-  public static void testOverlays() throws Exception{
+  static void testOverlays() throws Exception{
     ImageUtil util = new ImageUtil();
     
     OverlayLayer baseLayer = new OverlayLayer(new URL("http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Portland/ESRI_LandBase_WebMercator/MapServer/tile/9/182/81"), 1.0f );
@@ -44,7 +44,7 @@ public class Tester {
     }
   }
   
-  public static void testMosaicImages() throws Exception{ 
+  static void testMosaicImages() throws Exception{ 
     ImageUtil util = new ImageUtil();
     
     MosaicLayer layer = new MosaicLayer();
@@ -86,7 +86,7 @@ public class Tester {
     }
   }
   
-  public static void testOverlays2() throws Exception{
+  static void testOverlays2() throws Exception{
     ImageUtil util = new ImageUtil();
     
     OverlayLayer baseLayer = new OverlayLayer(new URL("http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Portland/ESRI_LandBase_WebMercator/MapServer/tile/9/182/81"), 1.0f );
@@ -120,7 +120,7 @@ public class Tester {
     }
   }
   
-  public static void testFeatureLayer() throws Exception{
+  static void testFeatureLayer() throws Exception{
     Shape [] shapes = new Shape[2];
     shapes[0] = new Polygon(new int[] {50, 100, 150, 100}, new int[] {200, 100, 200, 300}, 4);
     shapes[1] = new Line2D.Double(50, 200, 150, 200);
@@ -144,7 +144,7 @@ public class Tester {
     }
   }
   
-  public static void testMosaicImages2() throws Exception{ 
+  static void testMosaicImages2() throws Exception{ 
     ImageUtil util = new ImageUtil();
     
     MosaicLayer layer = new MosaicLayer();
@@ -186,7 +186,7 @@ public class Tester {
     }
   }
   
-  public static void testMosaicImages3() throws Exception{ 
+  static void testMosaicImages3() throws Exception{ 
     ImageUtil util = new ImageUtil();
     
     MosaicLayer layer = new MosaicLayer();
@@ -240,7 +240,7 @@ public class Tester {
     }
   }
   
-  public static void testOverlays3() throws Exception{
+  static void testOverlays3() throws Exception{
     ImageUtil util = new ImageUtil();
     
     MosaicLayer layer = new MosaicLayer();
