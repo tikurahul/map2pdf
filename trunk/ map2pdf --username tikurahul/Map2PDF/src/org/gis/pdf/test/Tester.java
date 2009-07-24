@@ -6,6 +6,7 @@ import java.awt.Shape;
 import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,11 @@ public class Tester {
   public static void main(String[] args) throws Exception {
     testOverlays3();
   }
+
+  private static File getFile() throws IOException {
+    File temp = File.createTempFile("map",".png");
+    return temp;
+  }
   
   static void testOverlays() throws Exception{
     ImageUtil util = new ImageUtil();
@@ -39,7 +45,7 @@ public class Tester {
       System.out.println("Failed Test.");
     else {
       System.out.println("Done.");
-      File outputFile = new File("C:/Documents and Settings/Rahu5852/Desktop/temp.png");
+      File outputFile = getFile();
       ImageIO.write(overlay, "PNG", outputFile);
     }
   }
@@ -81,7 +87,7 @@ public class Tester {
       System.out.println("Failed Test.");
     else {
       System.out.println("Done.");
-      File outputFile = new File("C:/Documents and Settings/Rahu5852/Desktop/temp.png");
+      File outputFile = getFile();
       ImageIO.write(mosaic, "PNG", outputFile);
     }
   }
@@ -115,7 +121,7 @@ public class Tester {
       System.out.println("Failed Test.");
     else {
       System.out.println("Done.");
-      File outputFile = new File("C:/Documents and Settings/Rahu5852/Desktop/temp.png");
+      File outputFile = getFile();
       ImageIO.write(overlay, "PNG", outputFile);
     }
   }
@@ -139,7 +145,7 @@ public class Tester {
       System.out.println("Failed Test.");
     else {
       System.out.println("Done.");
-      File outputFile = new File("C:/Documents and Settings/Rahu5852/Desktop/temp.png");
+      File outputFile = getFile();
       ImageIO.write(featureRep, "PNG", outputFile);
     }
   }
@@ -181,7 +187,7 @@ public class Tester {
       System.out.println("Failed Test.");
     else {
       System.out.println("Done.");
-      File outputFile = new File("C:/Documents and Settings/Rahu5852/Desktop/temp.png");
+      File outputFile = getFile();
       ImageIO.write(mosaic, "PNG", outputFile);
     }
   }
@@ -235,7 +241,7 @@ public class Tester {
       System.out.println("Failed Test.");
     else {
       System.out.println("Done.");
-      File outputFile = new File("C:/Documents and Settings/Rahu5852/Desktop/temp.png");
+      File outputFile = getFile();
       ImageIO.write(mosaic, "PNG", outputFile);
     }
   }
@@ -312,7 +318,7 @@ public class Tester {
       System.out.println("Failed Test.");
     else {
       System.out.println("Done.");
-      File outputFile = new File("C:/Documents and Settings/Rahu5852/Desktop/temp.png");
+      File outputFile = getFile();
       ImageIO.write(overlay, "PNG", outputFile);
     }
   }
