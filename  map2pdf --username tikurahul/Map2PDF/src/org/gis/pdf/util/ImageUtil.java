@@ -50,7 +50,7 @@ public class ImageUtil {
       if(collection != null){
         //check if minRow, minCol values are valid
         int minRow = collection.getMinRow(); int minCol = collection.getMinCol(); int maxRow = collection.getMaxRow(); int maxCol = collection.getMaxCol();
-        if(minRow == 9999 || minCol == 9999 || maxRow == -1 || maxCol == -1){
+        if(minRow == Integer.MAX_VALUE || minCol == Integer.MAX_VALUE || maxRow == Integer.MIN_VALUE || maxCol == Integer.MIN_VALUE){
           throw new Exception("Mosaic Collection invalid.");
         }else {
           //read images
