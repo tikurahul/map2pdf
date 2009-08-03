@@ -44,8 +44,8 @@ public class PDFServlet extends HttpServlet {
 	}
 	
 	public String getPath(){
-    return path;
-  }
+	  return path;
+    }
 	
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	  List<String> errors = new ArrayList<String> ();
