@@ -2,15 +2,15 @@ package org.gis.pdf.data;
 
 import java.awt.image.BufferedImage;
 
-public abstract class Overlayable {
+public interface Overlayable {
   //empty class that signifies overlayable layer
-  public abstract BufferedImage getImage();
+  public BufferedImage getImage();
   
-  public abstract float getTransparency();
+  public float getTransparency();
   
-  public abstract int getWidth();
+  public int getWidth();
   
-  public abstract int getHeight();
+  public int getHeight();
   
-  public abstract int getType();
+  public int getType();
 }

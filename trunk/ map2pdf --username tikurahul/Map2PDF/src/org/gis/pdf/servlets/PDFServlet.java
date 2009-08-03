@@ -52,8 +52,8 @@ public class PDFServlet extends HttpServlet {
 	  OutputStream stream = null;
 	  PrintWriter writer = null;
 	  //check request format
-	  String f = request.getParameter("f");
-	  f = f==null ? "pdf" : f;
+	  String f = PDFMacros.param("f", request);
+	  Format format = Format.fromString(f);
 	  //check format
 	  if(!Format.isValidFormat(f)){
 	    errors.add("Invalid Request format.");
@@ -128,7 +128,7 @@ public class PDFServlet extends HttpServlet {
 		  String pageTitle = request.getParameter("pageTitle");
 		  pageTitle = PDFMacros.isEmpty(pageTitle) ? "Map2PDF" : pageTitle;
 		  
-		  if(f.equalsIgnoreCase(Format.IMAGE.toString())){
+		  if(format == Format.IMAGE){
 		    //return image
 		    response.setContentType("image/png");
 		    stream = response.getOutputStream();
@@ -142,7 +142,7 @@ public class PDFServlet extends HttpServlet {
 		    PDFEngine engine = new PDFEngine(new URL(imageUrl), baos, pageTitle);
 		    engine.createPDF();
 		    String pdfUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/")) + "/pdf/" + imageId.toString() + ".pdf";
-		    if(f.equalsIgnoreCase(Format.PDF.toString())){
+		    if(format == Format.PDF){
 		      response.setContentType("application/pdf");
 	        stream = response.getOutputStream();
 	        stream.write(baos.toByteArray());
@@ -160,7 +160,7 @@ public class PDFServlet extends HttpServlet {
 		      JSONObject pdfJson = new JSONObject();
 		      pdfJson.put("pdfUrl", pdfUrl);
 		      pdfJson.put("imageUrl", imageUrl);
-		      if(Format.JSON.toString().equalsIgnoreCase(f)){
+		      if(format == Format.JSON){
 		        if(PDFMacros.isEmpty(callback)){
 		          writer.write(pdfJson.toString());
 		        }else {
@@ -178,7 +178,7 @@ public class PDFServlet extends HttpServlet {
 		  }
 	  }catch (Exception e){
 		  logger.log(Level.SEVERE, e.getMessage());
-		  if(!(Format.JSON.toString().equalsIgnoreCase(f) || Format.PJSON.toString().equalsIgnoreCase(f))){
+		  if(!(format == Format.JSON || format == Format.PJSON)){
 		    //redirect to error.jsp
 		    errors.add(e.getMessage());
 		    request.setAttribute("errors", errors);
@@ -191,7 +191,7 @@ public class PDFServlet extends HttpServlet {
 		    writer = response.getWriter();
 		    JSONArray jerrors = new JSONArray(errors);
 		    String callback = request.getParameter("callback");
-		    if(Format.JSON.toString().equalsIgnoreCase(f)){
+		    if(format == Format.JSON){
           if(PDFMacros.isEmpty(callback)){
             writer.write(jerrors.toString());
           }else {
