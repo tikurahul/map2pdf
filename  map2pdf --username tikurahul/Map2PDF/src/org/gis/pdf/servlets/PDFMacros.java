@@ -11,6 +11,14 @@ public class PDFMacros {
     return (T) request.getAttribute(attribute);
   }
   
+  //               // 
+  ///Not Type Safe///
+  //               //
+  @SuppressWarnings("unchecked")
+  public static <T> T param(String attribute, HttpServletRequest request){
+    return (T) request.getParameter(attribute);
+  }
+  
   public static boolean isEmpty(String str){
 	  if(str != null && str.length() > 0)
 		  return false;

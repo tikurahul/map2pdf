@@ -23,4 +23,12 @@ public enum Format {
      return isValid;
    }
    
+   public static Format fromString(String format){
+	   //Format -> upper case
+	   format = format.toUpperCase();
+	   if(format == null || !isValidFormat(format))
+		   return Format.PDF;
+	   return Format.valueOf(format);
+   }
+   
 }

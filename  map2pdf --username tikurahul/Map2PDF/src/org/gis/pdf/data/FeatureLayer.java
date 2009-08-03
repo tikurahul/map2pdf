@@ -14,7 +14,7 @@ import org.gis.pdf.json.JSONArray;
 import org.gis.pdf.json.JSONObject;
 import org.gis.pdf.util.ImageUtil;
 
-public class FeatureLayer extends Overlayable{
+public class FeatureLayer implements Overlayable{
   
   public static final Logger logger = Logger.getLogger(FeatureLayer.class.getName());
   

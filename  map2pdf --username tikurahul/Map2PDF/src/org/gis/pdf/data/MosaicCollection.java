@@ -10,7 +10,7 @@ import org.gis.pdf.json.JSONArray;
 import org.gis.pdf.json.JSONObject;
 import org.gis.pdf.util.ImageUtil;
 
-public class MosaicCollection extends Overlayable {
+public class MosaicCollection implements Overlayable {
   
   public static final Logger logger = Logger.getLogger(MosaicCollection.class.getName());
   
@@ -29,10 +29,10 @@ public class MosaicCollection extends Overlayable {
     this.transparency = transparency;
     this.clipOptions = clipOptions;
     //a little housekeeping
-    minRow = 9999;
-    minCol = 9999;
-    maxRow = -1;
-    maxCol = -1;
+    minRow = Integer.MAX_VALUE;
+    minCol = Integer.MAX_VALUE;
+    maxRow = Integer.MIN_VALUE;
+    maxCol = Integer.MIN_VALUE;
     if(layers != null){
       for(MosaicLayer layer : layers){
         if(minRow >= layer.getRow()){
