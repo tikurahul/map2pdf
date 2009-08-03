@@ -24,10 +24,11 @@ public enum Format {
    }
    
    public static Format fromString(String format){
-	   //Format -> upper case
-	   format = format.toUpperCase();
 	   if(format == null || !isValidFormat(format))
 		   return Format.PDF;
+	   
+	   //Format -> upper case
+	   format = format.toUpperCase();
 	   return Format.valueOf(format);
    }
    
