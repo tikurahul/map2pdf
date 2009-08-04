@@ -6,6 +6,10 @@
 		<display-name>PDFServlet</display-name>
 		<servlet-name>PDFServlet</servlet-name>
 		<servlet-class>org.gis.pdf.servlets.PDFServlet</servlet-class>
+    <init-param>
+      <param-name>report-config</param-name>
+      <param-value>/WEB-INF/map2pdf-reports.properties</param-value>
+    </init-param>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>PDFServlet</servlet-name>

@@ -5,11 +5,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,171 +32,226 @@ import org.gis.pdf.data.Overlayable;
 import org.gis.pdf.json.JSONArray;
 import org.gis.pdf.json.JSONException;
 import org.gis.pdf.json.JSONObject;
+import org.gis.pdf.report.ReportGenerator;
+import org.gis.pdf.report.SampleReport;
 import org.gis.pdf.util.ImageUtil;
 import org.gis.pdf.util.PDFEngine;
 
 public class PDFServlet extends HttpServlet {
   
-	private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-	private static final Logger logger = Logger.getLogger(PDFServlet.class.getName());
-	
-	private String path= null;
-	
-	public void init() throws ServletException {
-	  super.init();
-	  path = this.getServletContext().getRealPath("/");
-	}
-	
-	public String getPath(){
-	  return path;
+  private static final Logger logger = Logger.getLogger(PDFServlet.class.getName());
+  
+  private String path= null;
+  private final Map<String, Class<? extends ReportGenerator>> reports = 
+        new HashMap<String, Class<? extends ReportGenerator>>();
+  private Class<? extends ReportGenerator> defaultReport;
+  
+  public void init() throws ServletException {
+    super.init();
+    path = this.getServletContext().getRealPath("/");
+    initReports();
+  }
+  
+  public String getPath() {
+    return path;
+  }
+  
+  private void initReports() throws ServletException
+  {
+    String conf = getServletConfig().getInitParameter("report-config");
+    InputStream inp = getServletContext().getResourceAsStream(conf);
+    Properties repProps = new Properties();
+    try {
+      repProps.load(inp);
     }
-	
-	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-	  List<String> errors = new ArrayList<String> ();
-	  OutputStream stream = null;
-	  PrintWriter writer = null;
-	  //check request format
-	  String f = PDFMacros.param("f", request);
-	  Format format = Format.fromString(f);
-	  //check format
-	  if(!Format.isValidFormat(f)){
-	    errors.add("Invalid Request format.");
-	    request.setAttribute("errors", errors);
-	    this.getServletContext().getRequestDispatcher("/errors.jsp").forward(request, response);
-	  }
-	  
-	  try{
-		  //get tileLayers and dynamicLayers from 'rasters'
-		  
-		  //tileUrls
-		  List<MosaicCollection> mLayers = new ArrayList<MosaicCollection>();
-		  //dynamicUrls
-		  List<OverlayLayer> oLayers = new ArrayList<OverlayLayer>();
-		  
-		  String jRasters = request.getParameter("layers");
-		  if(!PDFMacros.isEmpty(jRasters)){
-			//read all tileLayers and dynamicLayers
-			try{
-				JSONObject rasters = new JSONObject(jRasters);
-				mLayers = MosaicCollection.fromJson(rasters.getJSONArray("tileLayers"));
-				oLayers = OverlayLayer.fromJson(rasters.getJSONArray("dynamicLayers"));
-			}catch(Exception e){
-				String message = "Invalid input json 'layers'.";
-				errors.add(message);
-				throw new Exception(message);
-			}
-		  }else {
-			  String message = "No Layers Specified.";
-			  errors.add(message);
-			  throw new Exception(message);
-		  }
-		  
-		  //get featureLayers (optional)
-		  List<FeatureLayer> fLayers = new ArrayList<FeatureLayer>();
-		  
-		  String jVectors = request.getParameter("features");
-		  if(!PDFMacros.isEmpty(jVectors)){
-  			try{
-  				JSONArray vectors = new JSONArray(jVectors);
-  				fLayers = FeatureLayer.fromJson(vectors);
-  			}catch(Exception e){
-  				String message = "No Features Specified.";
-  				errors.add(message);
-  				throw new Exception(message);
-  			}
-		  }
-		  
-		  //begin creating PDF
-		  List<Overlayable> overlayLayers = new ArrayList<Overlayable>();
-		  for(int i=0; i<mLayers.size(); i++){
-			  overlayLayers.add(mLayers.get(i));
-		  }
-		  for(int i=0; i<oLayers.size(); i++){
-			  overlayLayers.add(oLayers.get(i));
-		  }
-		  for(int i=0; i<fLayers.size(); i++){
-			  overlayLayers.add(fLayers.get(i));
-		  }
-		  
-		  //Begin Overlay
-		  ImageUtil util = new ImageUtil();
-		  BufferedImage image = util.overlayImages(overlayLayers);
-		  
-		  //Generate Response
-		  UUID imageId = UUID.randomUUID();
-		  ImageIO.write(image, "PNG", new File(path + "/images/" + imageId.toString() + ".png"));
-		  //Generating Image URL
-		  StringBuffer requestUrl =request.getRequestURL();
-		  
-		  String imageUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/")) + "/images/" + imageId.toString() + ".png";
-		  String pageTitle = request.getParameter("pageTitle");
-		  pageTitle = PDFMacros.isEmpty(pageTitle) ? "Map2PDF" : pageTitle;
-		  
-		  if(format == Format.IMAGE){
-		    //return image
-		    response.setContentType("image/png");
-		    stream = response.getOutputStream();
-		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		    ImageIO.write(image, "PNG", baos);
-		    stream.write(baos.toByteArray());
-		    return;
-		  } else {
-		    //Generate PDF		    
-		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		    PDFEngine engine = new PDFEngine(new URL(imageUrl), baos, pageTitle);
-		    engine.createPDF();
-		    String pdfUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/")) + "/pdf/" + imageId.toString() + ".pdf";
-		    if(format == Format.PDF){
-		      response.setContentType("application/pdf");
-	        stream = response.getOutputStream();
-	        stream.write(baos.toByteArray());
-		      return;
-		    } else {
-		      //JSON / PJSON
-		      //Write PDF to file
-		      FileOutputStream fos = new FileOutputStream(path + "/pdf/" + imageId.toString() + ".pdf");
-		      fos.write(baos.toByteArray());
-		      fos.close();
-		      //Writing to file Complete
-		      response.setContentType("text/plain");
-		      String callback = request.getParameter("callback");
-		      writer = response.getWriter();
-		      JSONObject pdfJson = new JSONObject();
-		      pdfJson.put("pdfUrl", pdfUrl);
-		      pdfJson.put("imageUrl", imageUrl);
-		      if(format == Format.JSON){
-		        if(PDFMacros.isEmpty(callback)){
-		          writer.write(pdfJson.toString());
-		        }else {
-		          writer.write(callback + "(" + pdfJson.toString() + ");");
-		        }
-		      } else {
-		        if(PDFMacros.isEmpty(callback)){
+    catch (IOException ioex) {
+      logger.log(Level.WARNING, "Unable to read configuration file.  Using defaults.", ioex);
+      defaultReport = SampleReport.class;
+    }
+    
+    String repNames = repProps.getProperty("reports");
+    if (repNames != null) {
+      String[] names = repNames.split(",");
+      for (String name : names) {
+        String clsName = repProps.getProperty("report." + name);
+        if (clsName != null) {
+          try {
+            Class<? extends ReportGenerator> clazzGen = 
+              Class.forName(clsName).asSubclass(ReportGenerator.class);
+            reports.put(name, clazzGen);
+            // the first report becomes the default...
+            if (defaultReport == null) { 
+              defaultReport = clazzGen; 
+              logger.info("Default report is " + defaultReport);
+            }
+          }
+          catch (ClassCastException e) {
+            throw new ServletException(clsName + " must implement the " + 
+                ReportGenerator.class.getName() + " interface!", e);
+          }
+          catch (ClassNotFoundException e) {
+            throw new ServletException(clsName + " not found.", e);
+          }
+        } else {
+          throw new ServletException("Missing class name for report " + name);
+        }
+      }
+    }
+  }
+  
+  protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    List<String> errors = new ArrayList<String> ();
+    OutputStream stream = null;
+    PrintWriter writer = null;
+    //check request format
+    String f = PDFMacros.param("f", request);
+    Format format = Format.fromString(f);
+    //check format
+    if(!Format.isValidFormat(f)){
+      errors.add("Invalid Request format.");
+      request.setAttribute("errors", errors);
+      this.getServletContext().getRequestDispatcher("/errors.jsp").forward(request, response);
+    }
+    
+    try{
+      //get tileLayers and dynamicLayers from 'rasters'
+      
+      //tileUrls
+      List<MosaicCollection> mLayers = new ArrayList<MosaicCollection>();
+      //dynamicUrls
+      List<OverlayLayer> oLayers = new ArrayList<OverlayLayer>();
+      
+      String jRasters = request.getParameter("layers");
+      if(!PDFMacros.isEmpty(jRasters)){
+      //read all tileLayers and dynamicLayers
+      try{
+        JSONObject rasters = new JSONObject(jRasters);
+        mLayers = MosaicCollection.fromJson(rasters.getJSONArray("tileLayers"));
+        oLayers = OverlayLayer.fromJson(rasters.getJSONArray("dynamicLayers"));
+      }catch(Exception e){
+        String message = "Invalid input json 'layers'.";
+        errors.add(message);
+        throw new Exception(message);
+      }
+      }else {
+        String message = "No Layers Specified.";
+        errors.add(message);
+        throw new Exception(message);
+      }
+      
+      //get featureLayers (optional)
+      List<FeatureLayer> fLayers = new ArrayList<FeatureLayer>();
+      
+      String jVectors = request.getParameter("features");
+      if(!PDFMacros.isEmpty(jVectors)){
+        try{
+          JSONArray vectors = new JSONArray(jVectors);
+          fLayers = FeatureLayer.fromJson(vectors);
+        }catch(Exception e){
+          String message = "No Features Specified.";
+          errors.add(message);
+          throw new Exception(message);
+        }
+      }
+      
+      //begin creating PDF
+      List<Overlayable> overlayLayers = new ArrayList<Overlayable>();
+      for(int i=0; i<mLayers.size(); i++){
+        overlayLayers.add(mLayers.get(i));
+      }
+      for(int i=0; i<oLayers.size(); i++){
+        overlayLayers.add(oLayers.get(i));
+      }
+      for(int i=0; i<fLayers.size(); i++){
+        overlayLayers.add(fLayers.get(i));
+      }
+      
+      //Begin Overlay
+      ImageUtil util = new ImageUtil();
+      BufferedImage image = util.overlayImages(overlayLayers);
+      
+      //Generate Response
+      UUID imageId = UUID.randomUUID();
+      ImageIO.write(image, "PNG", new File(path + "/images/" + imageId.toString() + ".png"));
+      //Generating Image URL
+      StringBuffer requestUrl =request.getRequestURL();
+      
+      String imageUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/")) + "/images/" + imageId.toString() + ".png";
+      String pageTitle = request.getParameter("pageTitle");
+      pageTitle = PDFMacros.isEmpty(pageTitle) ? "Map2PDF" : pageTitle;
+      
+      if(format == Format.IMAGE){
+        //return image
+        response.setContentType("image/png");
+        stream = response.getOutputStream();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "PNG", baos);
+        stream.write(baos.toByteArray());
+        return;
+      } else {
+        //Generate PDF        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        
+        PDFEngine engine = new PDFEngine(
+            new URL(imageUrl), 
+            baos, 
+            pageTitle, 
+            determineReport(request),
+            determineReportParameters(request));
+        engine.createPDF();
+        String pdfUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/")) + "/pdf/" + imageId.toString() + ".pdf";
+        if(format == Format.PDF){
+          response.setContentType("application/pdf");
+          stream = response.getOutputStream();
+          stream.write(baos.toByteArray());
+          return;
+        } else {
+          //JSON / PJSON
+          //Write PDF to file
+          FileOutputStream fos = new FileOutputStream(path + "/pdf/" + imageId.toString() + ".pdf");
+          fos.write(baos.toByteArray());
+          fos.close();
+          //Writing to file Complete
+          response.setContentType("text/plain");
+          String callback = request.getParameter("callback");
+          writer = response.getWriter();
+          JSONObject pdfJson = new JSONObject();
+          pdfJson.put("pdfUrl", pdfUrl);
+          pdfJson.put("imageUrl", imageUrl);
+          if(format == Format.JSON){
+            if(PDFMacros.isEmpty(callback)){
+              writer.write(pdfJson.toString());
+            }else {
+              writer.write(callback + "(" + pdfJson.toString() + ");");
+            }
+          } else {
+            if(PDFMacros.isEmpty(callback)){
               writer.write(pdfJson.toString(2));
             }else {
               writer.write(callback + "(" + pdfJson.toString(2) + ");");
             }
-		      }
-		      return;
-		    }
-		  }
-	  }catch (Exception e){
-		  logger.log(Level.SEVERE, e.getMessage());
-		  if(!(format == Format.JSON || format == Format.PJSON)){
-		    //redirect to error.jsp
-		    errors.add(e.getMessage());
-		    request.setAttribute("errors", errors);
-	      this.getServletContext().getRequestDispatcher("/errors.jsp").forward(request, response);
-		    return;
-		  }
-		  else {
-		    //return errors as json
-		    response.setContentType("text/plain");
-		    writer = response.getWriter();
-		    JSONArray jerrors = new JSONArray(errors);
-		    String callback = request.getParameter("callback");
-		    if(format == Format.JSON){
+          }
+          return;
+        }
+      }
+    }catch (Exception e){
+      logger.log(Level.SEVERE, e.getMessage(), e);
+      if(!(format == Format.JSON || format == Format.PJSON)){
+        //redirect to error.jsp
+        errors.add(e.getMessage());
+        request.setAttribute("errors", errors);
+        this.getServletContext().getRequestDispatcher("/errors.jsp").forward(request, response);
+        return;
+      }
+      else {
+        //return errors as json
+        response.setContentType("text/plain");
+        writer = response.getWriter();
+        JSONArray jerrors = new JSONArray(errors);
+        String callback = request.getParameter("callback");
+        if(format == Format.JSON){
           if(PDFMacros.isEmpty(callback)){
             writer.write(jerrors.toString());
           }else {
@@ -212,20 +272,41 @@ public class PDFServlet extends HttpServlet {
             }
           }
         }
-		  }
-	  } finally {
-	    if(stream != null){
-	      stream.close();
-	    }
-	    if(writer != null){
-	      writer.close();
-	    }
-	  }
-	}
-
+      }
+    } finally {
+      if(stream != null){
+        stream.close();
+      }
+      if(writer != null){
+        writer.close();
+      }
+    }
+  }
+  
+  private ReportGenerator determineReport(HttpServletRequest request) throws Exception {
+    String reportName = request.getParameter("report");
+    Class<? extends ReportGenerator> generator = 
+      PDFMacros.isEmpty(reportName) ? 
+        defaultReport : 
+        reports.get(PDFMacros.param("report", request));
+    if (generator == null) {
+      throw new Exception(reportName + " is not a valid report.");
+    }
+    return generator.newInstance();
+  }
+  
+  private Map<String, String> determineReportParameters(HttpServletRequest request) throws Exception {
+    Map<String, String> params = new HashMap<String, String>();
+    String reqParams = request.getParameter("reportParams");
+    if (!PDFMacros.isEmpty(reqParams)) {
+      JSONObject json = new JSONObject(reqParams);
+      Iterator<?> keys = json.keys();
+      while (keys.hasNext()) {
+        String key = (String) keys.next();
+        String value = (String) json.get(key);
+        params.put(key, value);
+      }
+    }
+    return params;
+  }
 }
-
-
-
-
-
