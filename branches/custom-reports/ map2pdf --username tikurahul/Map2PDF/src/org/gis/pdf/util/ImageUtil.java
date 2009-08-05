@@ -21,7 +21,7 @@ import org.gis.pdf.data.Overlayable;
 
 public class ImageUtil {
   
-  public static final Logger logger = Logger.getLogger(ImageUtil.class.getName());
+  private static final Logger logger = Logger.getLogger(ImageUtil.class.getName());
   
   public BufferedImage readImage(URL url){
     BufferedImage image = null;

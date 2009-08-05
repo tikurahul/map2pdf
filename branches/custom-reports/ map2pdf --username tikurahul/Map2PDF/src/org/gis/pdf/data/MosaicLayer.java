@@ -10,7 +10,7 @@ import org.gis.pdf.json.JSONObject;
 
 public class MosaicLayer {
   
-  public static final Logger logger = Logger.getLogger(MosaicLayer.class.getName());
+  private static final Logger logger = Logger.getLogger(MosaicLayer.class.getName());
   
   protected URL url;
   protected int row;

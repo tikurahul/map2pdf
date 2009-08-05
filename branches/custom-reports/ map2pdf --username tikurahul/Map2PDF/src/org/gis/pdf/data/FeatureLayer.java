@@ -16,7 +16,7 @@ import org.gis.pdf.util.ImageUtil;
 
 public class FeatureLayer implements Overlayable{
   
-  public static final Logger logger = Logger.getLogger(FeatureLayer.class.getName());
+  private static final Logger logger = Logger.getLogger(FeatureLayer.class.getName());
   
   //shapes
   protected List<Shape> shapes;
