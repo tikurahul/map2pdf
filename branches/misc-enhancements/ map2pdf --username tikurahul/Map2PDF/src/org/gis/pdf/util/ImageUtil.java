@@ -20,6 +20,8 @@ import org.gis.pdf.data.FeatureLayer;
 import org.gis.pdf.data.MosaicCollection;
 import org.gis.pdf.data.Overlayable;
 
+import com.lowagie.text.pdf.internal.PolylineShape;
+
 public class ImageUtil {
   
   private static final Logger logger = Logger.getLogger(ImageUtil.class.getName());
@@ -164,7 +166,11 @@ public class ImageUtil {
           Color c = colors.get(i);
           Shape s = shapes.get(i);
           graphics.setColor(c);
-          graphics.fill(shapes.get(i));
+          // ugly hack to prevent the polyline from being filled. 
+          // I don't know enough about this to do a better fix for the moment.
+          if (!(s instanceof PolylineShape)) {
+            graphics.fill(s); 
+          }
           graphics.draw(s);
         }
       }
