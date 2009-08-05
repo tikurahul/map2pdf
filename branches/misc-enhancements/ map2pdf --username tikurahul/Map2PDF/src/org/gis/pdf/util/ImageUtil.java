@@ -4,6 +4,7 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
@@ -152,6 +153,9 @@ public class ImageUtil {
     try{
       image = new BufferedImage(layer.getWidth(), layer.getHeight(), BufferedImage.TYPE_INT_ARGB);
       Graphics2D graphics = image.createGraphics();
+      graphics.setRenderingHint(
+          RenderingHints.KEY_ANTIALIASING,
+          RenderingHints.VALUE_ANTIALIAS_ON);
       graphics.setStroke(new BasicStroke(3.0f));
       List<Shape> shapes = layer.getShapes();
       List<Color> colors = layer.getColors();
