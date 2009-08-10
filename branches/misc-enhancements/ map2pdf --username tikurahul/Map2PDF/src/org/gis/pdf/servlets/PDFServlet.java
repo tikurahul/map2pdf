@@ -8,13 +8,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,8 +32,7 @@ import org.gis.pdf.data.Overlayable;
 import org.gis.pdf.json.JSONArray;
 import org.gis.pdf.json.JSONException;
 import org.gis.pdf.json.JSONObject;
-import org.gis.pdf.report.ReportGenerator;
-import org.gis.pdf.report.SampleReport;
+import org.gis.pdf.report.ReportConfig;
 import org.gis.pdf.util.ImageUtil;
 import org.gis.pdf.util.PDFEngine;
 
@@ -44,9 +43,7 @@ public class PDFServlet extends HttpServlet {
   private static final Logger logger = Logger.getLogger(PDFServlet.class.getName());
   
   private String path= null;
-  private final Map<String, Class<? extends ReportGenerator>> reports = 
-        new HashMap<String, Class<? extends ReportGenerator>>();
-  private Class<? extends ReportGenerator> defaultReport;
+  private ReportConfig reportConf;
   
   public void init() throws ServletException {
     super.init();
@@ -62,42 +59,11 @@ public class PDFServlet extends HttpServlet {
   {
     String conf = getServletConfig().getInitParameter("report-config");
     InputStream inp = getServletContext().getResourceAsStream(conf);
-    Properties repProps = new Properties();
-    try {
-      repProps.load(inp);
+    try { 
+      reportConf = new ReportConfig(getServletContext().getResource(conf)); 
     }
-    catch (IOException ioex) {
-      logger.log(Level.WARNING, "Unable to read configuration file.  Using defaults.", ioex);
-      defaultReport = SampleReport.class;
-    }
-    
-    String repNames = repProps.getProperty("reports");
-    if (repNames != null) {
-      String[] names = repNames.split(",");
-      for (String name : names) {
-        String clsName = repProps.getProperty("report." + name);
-        if (clsName != null) {
-          try {
-            Class<? extends ReportGenerator> clazzGen = 
-              Class.forName(clsName).asSubclass(ReportGenerator.class);
-            reports.put(name, clazzGen);
-            // the first report becomes the default...
-            if (defaultReport == null) { 
-              defaultReport = clazzGen; 
-              logger.info("Default report is " + defaultReport);
-            }
-          }
-          catch (ClassCastException e) {
-            throw new ServletException(clsName + " must implement the " + 
-                ReportGenerator.class.getName() + " interface!", e);
-          }
-          catch (ClassNotFoundException e) {
-            throw new ServletException(clsName + " not found.", e);
-          }
-        } else {
-          throw new ServletException("Missing class name for report " + name);
-        }
-      }
+    catch (MalformedURLException e) {
+      throw new ServletException("Invalid report configuration.", e);
     }
   }
   
@@ -198,7 +164,7 @@ public class PDFServlet extends HttpServlet {
             new URL(imageUrl), 
             baos, 
             pageTitle, 
-            determineReport(request),
+            reportConf.getReportGenerator(request.getParameter("report")),
             determineReportParameters(request));
         engine.createPDF();
         String pdfUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/")) + "/pdf/" + imageId.toString() + ".pdf";
@@ -281,18 +247,6 @@ public class PDFServlet extends HttpServlet {
         writer.close();
       }
     }
-  }
-  
-  private ReportGenerator determineReport(HttpServletRequest request) throws Exception {
-    String reportName = request.getParameter("report");
-    Class<? extends ReportGenerator> generator = 
-      PDFMacros.isEmpty(reportName) ? 
-        defaultReport : 
-        reports.get(PDFMacros.param("report", request));
-    if (generator == null) {
-      throw new Exception(reportName + " is not a valid report.");
-    }
-    return generator.newInstance();
   }
   
   private Map<String, String> determineReportParameters(HttpServletRequest request) throws Exception {
