@@ -170,6 +170,7 @@ public class PDFServlet extends HttpServlet {
         String pdfUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/")) + "/pdf/" + imageId.toString() + ".pdf";
         if(format == Format.PDF){
           response.setContentType("application/pdf");
+          response.setHeader("Content-Disposition", "attachment;filename=map.pdf");
           stream = response.getOutputStream();
           stream.write(baos.toByteArray());
           return;
