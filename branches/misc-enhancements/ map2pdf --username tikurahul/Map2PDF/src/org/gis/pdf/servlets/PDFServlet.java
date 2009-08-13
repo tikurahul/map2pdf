@@ -97,9 +97,8 @@ public class PDFServlet extends HttpServlet {
         mLayers = MosaicCollection.fromJson(rasters.getJSONArray("tileLayers"));
         oLayers = OverlayLayer.fromJson(rasters.getJSONArray("dynamicLayers"));
       }catch(Exception e){
-        String message = "Invalid input json 'layers'.";
-        errors.add(message);
-        throw new Exception(message);
+        String message = "Invalid input json 'layers': " + e.getMessage();
+        throw new Exception(message, e);
       }
       }else {
         String message = "No Layers Specified.";
@@ -118,7 +117,7 @@ public class PDFServlet extends HttpServlet {
         }catch(Exception e){
           String message = "No Features Specified.";
           errors.add(message);
-          throw new Exception(message);
+          throw new Exception(message, e);
         }
       }
       
@@ -142,9 +141,10 @@ public class PDFServlet extends HttpServlet {
       UUID imageId = UUID.randomUUID();
       ImageIO.write(image, "PNG", new File(path + "/images/" + imageId.toString() + ".png"));
       //Generating Image URL
-      StringBuffer requestUrl =request.getRequestURL();
+      String requestUrl = 
+        request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + "/" + request.getContextPath();
       
-      String imageUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/")) + "/images/" + imageId.toString() + ".png";
+      String imageUrl = requestUrl + "/images/" + imageId.toString() + ".png";
       String pageTitle = request.getParameter("pageTitle");
       pageTitle = PDFMacros.isEmpty(pageTitle) ? "Map2PDF" : pageTitle;
       
