@@ -14,12 +14,14 @@ dojo.declare("MapPrinter", "Object", {
   _convertUrlToAbsolute: function(url) {
     if (url) {
       if (url.indexOf("http") != 0) {
-        var link = document.createElement('a');
-        document.body.appendChild(link);
-        link.setAttribute("href", url);
-        url = link.href;
-        document.body.removeChild(link);
-      }
+        var escapeHTML = function (s) {
+          return s.split('&').join('&amp;').split('<').join('&lt;').split('"').join('&quot;');
+        };
+      
+        var el= document.createElement('div');
+        el.innerHTML= '<a href="'+escapeHTML(url)+'">x</a>';
+        url = el.childNodes[0].href;
+      }        
     }
     return url;
   },
