@@ -1,4 +1,4 @@
-﻿dojo.provide("MapPrinter");
+﻿﻿dojo.provide("MapPrinter");
 dojo.require("dojo.io.iframe");
 
 dojo.declare("MapPrinter", "Object", {
@@ -9,6 +9,19 @@ dojo.declare("MapPrinter", "Object", {
   constructor : function(/*esri.Map*/map, url) {
     this.map = map;
     this.pdfUrl = url;
+  },
+  
+  _convertUrlToAbsolute: function(url) {
+    if (url) {
+      if (url.indexOf("http") != 0) {
+        var link = document.createElement('a');
+        document.body.appendChild(link);
+        link.setAttribute("href", url);
+        url = link.href;
+        document.body.removeChild(link);
+      }
+    }
+    return url;
   },
   
   layersJson : function() {
@@ -34,7 +47,7 @@ dojo.declare("MapPrinter", "Object", {
                 + (candidateTileInfo.tile.coords.row + y) + "/"
                 + (candidateTileInfo.tile.coords.col + x);
             layerTileUrls.push( {
-              "url" : tileUrl,
+              "url" : this._convertUrlToAbsolute(tileUrl),
               "row" : candidateTileInfo.tile.coords.row + y,
               "col" : candidateTileInfo.tile.coords.col + x
             });
@@ -58,7 +71,7 @@ dojo.declare("MapPrinter", "Object", {
             + "&size=" + width + "," + height
             + "&transparent=true&format=png24&f=image";
         dynamicUrls.push( {
-          "url" : dynamicUrl,
+          "url" : this._convertUrlToAbsolute(dynamicUrl),
           "width" : this.map.width,
           "height" : this.map.height,
           "transparency" : layer.opacity
@@ -128,7 +141,7 @@ dojo.declare("MapPrinter", "Object", {
         });
       }
     }));
-    
+
     return dojo.toJson(features);
   },
   
