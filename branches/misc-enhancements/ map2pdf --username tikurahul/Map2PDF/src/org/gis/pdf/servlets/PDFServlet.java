@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -137,14 +136,6 @@ public class PDFServlet extends HttpServlet {
       ImageUtil util = new ImageUtil();
       BufferedImage image = util.overlayImages(overlayLayers);
       
-      //Generate Response
-      UUID imageId = UUID.randomUUID();
-      ImageIO.write(image, "PNG", new File(path + "/images/" + imageId.toString() + ".png"));
-      //Generating Image URL
-      String requestUrl = 
-        request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + "/" + request.getContextPath();
-      
-      String imageUrl = requestUrl + "/images/" + imageId.toString() + ".png";
       String pageTitle = request.getParameter("pageTitle");
       pageTitle = PDFMacros.isEmpty(pageTitle) ? "Map2PDF" : pageTitle;
       
@@ -161,13 +152,13 @@ public class PDFServlet extends HttpServlet {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         
         PDFEngine engine = new PDFEngine(
-            new URL(imageUrl), 
+            image, 
             baos, 
             pageTitle, 
             reportConf.getReportGenerator(request.getParameter("report")),
             determineReportParameters(request));
         engine.createPDF();
-        String pdfUrl = requestUrl.substring(0, requestUrl.lastIndexOf("/")) + "/pdf/" + imageId.toString() + ".pdf";
+
         if(format == Format.PDF){
           response.setContentType("application/pdf");
           response.setHeader("Content-Disposition", "attachment;filename=map.pdf");
@@ -176,11 +167,23 @@ public class PDFServlet extends HttpServlet {
           return;
         } else {
           //JSON / PJSON
-          //Write PDF to file
+          
+          // Write out png / pdf files to disk...
+          UUID imageId = UUID.randomUUID();
+          ImageIO.write(image, "PNG", new File(path + "/images/" + imageId.toString() + ".png"));
+
           FileOutputStream fos = new FileOutputStream(path + "/pdf/" + imageId.toString() + ".pdf");
           fos.write(baos.toByteArray());
           fos.close();
-          //Writing to file Complete
+
+          // Figure out the appropriate URLs...
+          String requestUrl = 
+            request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + "/" + request.getContextPath();
+          
+          String imageUrl = requestUrl + "/images/" + imageId.toString() + ".png";
+          String pdfUrl = requestUrl + "/pdf/" + imageId.toString() + ".pdf";
+          
+          // Generate the response...
           response.setContentType("text/plain");
           String callback = request.getParameter("callback");
           writer = response.getWriter();
