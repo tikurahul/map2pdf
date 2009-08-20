@@ -66,6 +66,15 @@ dojo.declare("MapPrinter", "Object", {
           + extent.ymin + "," + extent.xmax + "," + extent.ymax
           + "&size=" + width + "," + height
           + "&transparent=true&format=png24&f=image";
+
+      // handle layer visibility...
+      if (layer.visibleLayers.length > 0) { dynamicUrl += "&layers=show:"; }
+      
+      for ( var i = 0; i < layer.visibleLayers.length; i++) {
+        dynamicUrl += layer.visibleLayers[i];
+        dynamicUrl += i + 1 < layer.visibleLayers.length ? "," : "";
+      }
+      
       dynamicUrls.push( {
         "url" : this._convertUrlToAbsolute(dynamicUrl),
         "width" : this.map.width,
