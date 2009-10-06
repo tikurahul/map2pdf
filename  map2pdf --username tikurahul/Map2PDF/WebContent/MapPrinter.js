@@ -1,4 +1,4 @@
-﻿dojo.provide("MapPrinter");
+﻿﻿dojo.provide("MapPrinter");
 dojo.require("dojo.io.iframe");
 
 dojo.declare("MapPrinter", "Object", {
@@ -37,6 +37,9 @@ dojo.declare("MapPrinter", "Object", {
       var layerTileUrls = [];
       var tileXOffset = Math.ceil(width / layer.tileInfo.width);
       var tileYOffset = Math.ceil(height / layer.tileInfo.height);
+      // the internal function name prefix change to __ in v1.5
+      var delta = this.map._visibleDelta ? 
+          this.map._visibleDelta : this.map.__visibleDelta;
       for ( var x = 0; x <= tileXOffset; x++) {
         for ( var y = 0; y <= tileYOffset; y++) {
           var tileUrl = layer.url + "/tile/" + this.map.getLevel() + "/"
@@ -53,10 +56,8 @@ dojo.declare("MapPrinter", "Object", {
         "tiles" : layerTileUrls,
         "transparency" : layer.opacity,
         "clipOptions" : {
-          "offsetX" : candidateTileInfo.tile.offsets.x
-              - this.map._visibleDelta.x,
-          "offsetY" : candidateTileInfo.tile.offsets.y
-              - this.map._visibleDelta.y,
+          "offsetX" : candidateTileInfo.tile.offsets.x - delta.x,
+          "offsetY" : candidateTileInfo.tile.offsets.y - delta.y,
           "width" : width,
           "height" : height
         }

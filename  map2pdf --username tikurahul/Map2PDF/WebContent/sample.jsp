@@ -4,7 +4,7 @@
 <head>
   <title>Print Map as PDF</title>
   <meta http-equiv=”X-UA-Compatible” content=”IE=EmulateIE7″ />  
-  <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/1.4/js/dojo/dijit/themes/tundra/tundra.css" />
+  <link rel="stylesheet" type="text/css" href="http://serverapi.arcgisonline.com/jsapi/arcgis/1.5/js/dojo/dijit/themes/tundra/tundra.css" />
   <style type="text/css">
     @import "<%=request.getContextPath()%>/sample.css";
   </style>
@@ -14,7 +14,7 @@
       dojoBlankHtmlUrl: "<%=request.getContextPath()%>/dojo/resources/blank.html" 
     };
   </script>
-  <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=1.4"></script>
+  <script type="text/javascript" src="http://serverapi.arcgisonline.com/jsapi/arcgis/?v=1.5"></script>
   <script type="text/javascript" src="MapPrinter.js"></script>
   <script type="text/javascript">
     dojo.require("esri.map");
