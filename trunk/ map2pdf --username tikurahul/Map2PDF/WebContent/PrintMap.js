@@ -1,4 +1,4 @@
-﻿dojo.declare(
+﻿﻿dojo.declare(
     "PrintMap",
     "Object",
     {
@@ -46,6 +46,8 @@
                     var layerTileUrls = [];
                     var tileXOffset = Math.ceil(this.map.width / layer.tileInfo.width);
                     var tileYOffset = Math.ceil(this.map.height / layer.tileInfo.height);
+                    var delta = this.map._visibleDelta ? 
+                        this.map._visibleDelta : this.map.__visibleDelta;
                     for (var x = 0; x <= tileXOffset; x++) {
                         for (var y = 0; y <= tileYOffset; y++) {
                             var tileUrl = layer.url + "/tile/" + this.map.getLevel() + "/" + (candidateTileInfo.tile.coords.row + y) +
@@ -53,7 +55,7 @@
                             layerTileUrls.push({ "url": tileUrl, "row": candidateTileInfo.tile.coords.row + y, "col": candidateTileInfo.tile.coords.col + x });
                         }
                     }
-                    this.tileUrls.push({ "tiles": layerTileUrls, "transparency": layer.opacity, "clipOptions": { "offsetX": candidateTileInfo.tile.offsets.x - this.map._visibleDelta.x, "offsetY": candidateTileInfo.tile.offsets.y - this.map._visibleDelta.y, "width": this.width, "height": this.height} });
+                    this.tileUrls.push({ "tiles": layerTileUrls, "transparency": layer.opacity, "clipOptions": { "offsetX": candidateTileInfo.tile.offsets.x - delta.x, "offsetY": candidateTileInfo.tile.offsets.y - delta.y, "width": this.width, "height": this.height} });
                 } else if (layer instanceof esri.layers.ArcGISDynamicMapServiceLayer) {
                     var dynamicUrl = layer.url + "/export?bbox=" + this.extent.xmin + "," + this.extent.ymin + "," + this.extent.xmax + "," + this.extent.ymax + "&size=" + this.width + "," + this.height + "&transparent=true&format=png24&f=image";
                     this.dynamicUrls.push({ "url": dynamicUrl, "width": this.width, "height": this.height, "transparency": layer.opacity });
