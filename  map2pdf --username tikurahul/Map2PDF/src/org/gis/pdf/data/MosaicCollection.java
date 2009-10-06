@@ -12,7 +12,7 @@ import org.gis.pdf.util.ImageUtil;
 
 public class MosaicCollection implements Overlayable {
   
-  public static final Logger logger = Logger.getLogger(MosaicCollection.class.getName());
+  private static final Logger logger = Logger.getLogger(MosaicCollection.class.getName());
   
   protected List<MosaicLayer> layers;
   protected ClipOptions clipOptions;

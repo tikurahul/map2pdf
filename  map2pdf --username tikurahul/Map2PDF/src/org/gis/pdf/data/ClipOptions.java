@@ -7,7 +7,7 @@ import org.gis.pdf.json.JSONObject;
 
 public class ClipOptions {
   
-  public static final Logger logger = Logger.getLogger(ClipOptions.class.getName());
+  private static final Logger logger = Logger.getLogger(ClipOptions.class.getName());
   
   protected int offsetX;
   protected int offsetY;

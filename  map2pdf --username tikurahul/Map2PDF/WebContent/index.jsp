@@ -75,6 +75,14 @@
                     	<td><b> Callback : </b> <i> (Optional) </i></td>
                     	<td><input type="text" name="callback" value=""/></td>
                     </tr>
+                     <tr>
+                      <td><b> Report : </b> <i> (Optional) </i></td>
+                      <td><input type="text" name="report" value=""/></td>
+                    </tr>
+                     <tr>
+                      <td><b> Report Parameters : </b> <i> (Optional) </i></td>
+                      <td><textarea id="reportParams" name="reportParams" rows="3" cols="100" ></textarea></td>
+                    </tr>
                 </table>
                 <br />
                 <table border="0px">

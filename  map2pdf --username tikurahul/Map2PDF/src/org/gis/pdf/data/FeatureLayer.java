@@ -14,9 +14,11 @@ import org.gis.pdf.json.JSONArray;
 import org.gis.pdf.json.JSONObject;
 import org.gis.pdf.util.ImageUtil;
 
-public class FeatureLayer implements Overlayable{
+import com.lowagie.text.pdf.internal.PolylineShape;
+
+public class FeatureLayer implements Overlayable {
   
-  public static final Logger logger = Logger.getLogger(FeatureLayer.class.getName());
+  private static final Logger logger = Logger.getLogger(FeatureLayer.class.getName());
   
   //shapes
   protected List<Shape> shapes;
@@ -39,7 +41,7 @@ public class FeatureLayer implements Overlayable{
     try{
       image = util.generateFeatureRepresentation(this);
     }catch(Exception e){
-      logger.log(Level.SEVERE, "Error generating Feature Image");
+      logger.log(Level.SEVERE, "Error generating Feature Image", e);
     }
   }
   
@@ -76,24 +78,24 @@ public class FeatureLayer implements Overlayable{
     FeatureLayer layer = null;
     List<Shape> shapes = new ArrayList<Shape>();
     List<Color> colors = new ArrayList<Color>();
-    try{
+    try {
       JSONArray jshapes = json.getJSONArray("geometries");
       JSONArray jcolors = json.getJSONArray("colors");
-      if(jshapes == null || jcolors == null || !(jshapes.length() == jcolors.length())){
+      if(jshapes == null || jcolors == null || !(jshapes.length() == jcolors.length())) {
         throw new Exception("Invalid Input.");
       }
-      for(int i=0; i<jshapes.length(); i++){
+      for(int i=0; i<jshapes.length(); i++) {
         //get geometry info
         JSONObject jshape = jshapes.getJSONObject(i);
         String geometryType = jshape.getString("geometryType");
-        if("esriGeometryPoint".equalsIgnoreCase(geometryType)){
+        if("esriGeometryPoint".equalsIgnoreCase(geometryType)) {
           double x = jshape.getDouble("x");
           double y = jshape.getDouble("y");
           Line2D.Double point = new Line2D.Double(x, y, x, y);
           shapes.add(point);
-        } else if("esriGeometryPolygon".equalsIgnoreCase(geometryType)){
+        } else if("esriGeometryPolygon".equalsIgnoreCase(geometryType)) {
           JSONArray rings = jshape.getJSONArray("rings");
-          if(rings.length() > 0){
+          if(rings.length() > 0) {
             //take the first ring
             JSONArray fRing = rings.getJSONArray(0);
             int noPoints = fRing.length();
@@ -105,14 +107,38 @@ public class FeatureLayer implements Overlayable{
                 xcoords[j] = Math.round((float) point.getDouble(0));
                 ycoords[j] = Math.round((float)point.getDouble(1));
               } else {
-                throw new Exception("Invalid Input Geometry");
+                throw new Exception("Invalid Input Geometry: Malformed point.");
               }
             }
             Polygon polygon = new Polygon(xcoords, ycoords, noPoints);
             shapes.add(polygon);
-          }else {
-            throw new Exception("Invalid Input Geometry");
+          } else {
+            throw new Exception("Invalid Input Geometry: Multiple rings.");
           }
+        } else if ("esriGeometryPolyline".equalsIgnoreCase(geometryType)) {
+          
+          JSONArray paths = jshape.getJSONArray("paths");
+          for (int j = 0; j < paths.length(); j++) 
+          {
+            JSONArray path = paths.getJSONArray(j);
+            int numPoints = path.length();
+            int xcoords[] = new int[numPoints];
+            int ycoords[] = new int[numPoints];
+            for (int k = 0; k < numPoints; k++) 
+            {
+              JSONArray point = path.getJSONArray(k);
+              if (point.length() == 2) {
+                xcoords[k] = Math.round((float)point.getDouble(0));
+                ycoords[k] = Math.round((float)point.getDouble(1));
+              } else {
+                throw new Exception("Invalid Input Geometry: Malformed point.");
+              }
+            }
+            // an internal iText class... probably should find an alternative...
+            PolylineShape polyline = new PolylineShape(xcoords, ycoords, numPoints);
+            shapes.add(polyline);
+          }
+          
         } else {
           throw new Exception("Unsupported feature type.");
         }
@@ -134,19 +160,18 @@ public class FeatureLayer implements Overlayable{
   }
   
   public static List<FeatureLayer> fromJson(JSONArray json) throws Exception{
-	List<FeatureLayer> layers = new ArrayList<FeatureLayer>();
-	try{
-	 for(int i=0; i<json.length(); i++){
-	  FeatureLayer layer = fromJson(json.getJSONObject(i));
-	  layers.add(layer);
-	 }
-	}catch(Exception e){
-	 logger.log(Level.SEVERE, "Invalid input json, " + e.getMessage());
-	 throw e;
-	}
-	return layers;
+    List<FeatureLayer> layers = new ArrayList<FeatureLayer>();
+    try{
+      for(int i=0; i<json.length(); i++){
+        FeatureLayer layer = fromJson(json.getJSONObject(i));
+        layers.add(layer);
+      }
+    }catch(Exception e){
+      logger.log(Level.SEVERE, "Invalid input json, " + e.getMessage());
+      throw e;
+    }
+    return layers;
   }
-
 
   public int getType() {
     return image.getType();

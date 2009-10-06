@@ -1,0 +1,93 @@
+<project name="map2pdf" default="jar" basedir=".">
+
+  <!-- set global properties for this build -->
+  <property name="src"           value="src" />
+  <property name="lib"           value="WebContent/WEB-INF/lib" />
+  <property name="build"         value="WebContent/WEB-INF/classes" />
+  <property name="dist"          value="dist"/>
+  
+  <property name="jar.file" value="map2pdf.jar" />
+  <property name="jar.path" value="${dist}/${jar.file}" />
+
+  <property name="war.file" value="map2pdf.war" />
+  <property name="war.path" value="${dist}/${war.file}" />
+
+  <property file="build.properties"/>
+  <property name="itext-lib" value="${lib}/iText-2.1.5.jar" />
+  
+  <path id="compile.path">
+    <pathelement location="${itext-lib}"/>
+    <pathelement location="${servletapi.path}"/>    
+  </path>
+  
+  <target name="clean">
+    <delete dir="${build}" />
+    <delete dir="${dist}" />
+  </target>
+
+  <target name="setup">
+    <!-- get the current svn revision -->
+    <exec outputproperty="build.current.revision" executable="svnversion">
+      <arg line="-n -c" />
+      <redirector>
+        <outputfilterchain>
+          <tokenfilter>
+            <replaceregex pattern="^[0-9]*:?" replace="" flags="g"/>
+          </tokenfilter>
+        </outputfilterchain>
+      </redirector>
+    </exec>
+    <!-- set the time stamp -->
+    <tstamp>
+      <format property="build.current.date" pattern="yyyy-MM-dd HH:mm:ss z" />
+    </tstamp>
+
+    <available file="${servletapi.path}" property="servletapi.present"/>
+
+    <mkdir dir="${build}" />
+    <mkdir dir="${dist}" />
+  </target>
+
+  <target name="compile-prereq-test" depends="setup" unless="servletapi.present">
+    <echo level="error" 
+        message="servletapi.path is either not set or is invalid.  Please update the build.properties file appropriately."/>
+  </target>
+
+  <target name="compile" depends="compile-prereq-test" if="servletapi.present">
+    <javac srcdir="${src}"
+      includes="**/*.java"
+      destdir="${build}"
+      source="1.5"
+      target="1.5" 
+      debug="on">
+      <classpath>
+        <path refid="compile.path"/>
+      </classpath>
+    </javac>
+  </target>
+  
+  <target name="jar" depends="compile">
+    <jar destfile="${jar.path}">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Build-Date" value="${build.current.date}"/>
+        <attribute name="SVN-Revision" value="${build.current.revision}"/>
+      </manifest>
+      <fileset dir="${build}" includes="**/*.class"/>
+      <zipfileset src="${itext-lib}"/>
+    </jar>
+    <echo message="Jar build revision: ${build.current.revision}"/>
+  </target>
+
+  <target name="sample-war" depends="compile">
+    <jar destfile="${war.path}">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Build-Date" value="${build.current.date}"/>
+        <attribute name="SVN-Revision" value="${build.current.revision}"/>
+      </manifest>
+      <fileset dir="WebContent"/>
+    </jar>
+    <echo message="War build revision: ${build.current.revision}"/>
+  </target>
+</project>
