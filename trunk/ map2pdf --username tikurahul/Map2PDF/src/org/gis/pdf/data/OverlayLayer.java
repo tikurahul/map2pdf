@@ -13,7 +13,7 @@ import org.gis.pdf.util.ImageUtil;
 
 public class OverlayLayer implements Overlayable {
   
-  public static final Logger logger = Logger.getLogger(OverlayLayer.class.getName());
+  private static final Logger logger = Logger.getLogger(OverlayLayer.class.getName());
   
     protected URL url;
     protected BufferedImage image;
