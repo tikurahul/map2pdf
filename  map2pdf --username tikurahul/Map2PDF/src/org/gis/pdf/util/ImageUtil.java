@@ -36,7 +36,7 @@ public class ImageUtil {
     return image;
   }
   
-  public BufferedImage mosaicImages(MosaicCollection collection) throws Exception{
+  public BufferedImage mosaicImages(MosaicCollection collection) throws Exception {
     BufferedImage mosaic = null;
     BufferedImage clipImage = null;
     BufferedImage [] [] orderedCollection = null;
