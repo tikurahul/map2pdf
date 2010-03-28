@@ -147,8 +147,7 @@ public class PDFServlet extends HttpServlet {
         // Generate PDF
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        PDFEngine engine = new PDFEngine(image, baos, pageTitle, reportConf.getReportGenerator(request.getParameter("report")),
-            determineReportParameters(request));
+        PDFEngine engine = new PDFEngine(image, baos, pageTitle, reportConf.getReportGenerator(request.getParameter("report")), determineReportParameters(request));
         engine.createPDF();
 
         if (format == Format.PDF) {
