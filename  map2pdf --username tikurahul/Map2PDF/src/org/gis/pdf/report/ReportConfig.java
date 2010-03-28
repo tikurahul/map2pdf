@@ -56,11 +56,11 @@ public class ReportConfig {
         String clsName = repProps.getProperty("report." + name);
         if (clsName != null) {
           try {
-            Class<? extends ReportGenerator> clazzGen = Class.forName(clsName).asSubclass(ReportGenerator.class);
-            reports.put(name, clazzGen);
+            Class<? extends ReportGenerator> reportClass = Class.forName(clsName).asSubclass(ReportGenerator.class);
+            reports.put(name, reportClass);
             // the first report becomes the default...
             if (defaultReport == null) {
-              defaultReport = clazzGen;
+              defaultReport = reportClass;
               logger.info("Default report is " + defaultReport);
             }
           } catch (ClassCastException e) {
