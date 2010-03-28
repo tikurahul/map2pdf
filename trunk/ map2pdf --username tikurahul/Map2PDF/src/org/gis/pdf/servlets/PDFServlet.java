@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
@@ -56,7 +55,6 @@ public class PDFServlet extends HttpServlet {
 
   private void initReports() throws ServletException {
     String conf = getServletConfig().getInitParameter("report-config");
-    InputStream inp = getServletContext().getResourceAsStream(conf);
     try {
       reportConf = new ReportConfig(getServletContext().getResource(conf));
     } catch (MalformedURLException e) {
