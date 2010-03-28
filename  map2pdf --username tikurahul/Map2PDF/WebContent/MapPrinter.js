@@ -6,7 +6,7 @@ dojo.declare("MapPrinter", "Object", {
   pdfUrl : null,
   deferredPrint : null,
 
-  constructor : function(/*esri.Map*/map, url) {
+  constructor : function(/* esri.Map */map, url) {
     this.map = map;
     this.pdfUrl = url;
   },
@@ -16,8 +16,7 @@ dojo.declare("MapPrinter", "Object", {
       if (url.indexOf("http") != 0) {
         var escapeHTML = function (s) {
           return s.split('&').join('&amp;').split('<').join('&lt;').split('"').join('&quot;');
-        };
-      
+        };      
         var el= document.createElement('div');
         el.innerHTML= '<a href="'+escapeHTML(url)+'">x</a>';
         url = el.childNodes[0].href;
@@ -165,7 +164,7 @@ dojo.declare("MapPrinter", "Object", {
 
     // cancel the previous request. since we're returning pdf data
     // the request never really completes (or at least dojo is unable
-    // to detect completion).  if we don't cancel we are only able to 
+    // to detect completion). if we don't cancel we are only able to
     // generate a report once...
     if (this.deferredPrint) {
       this.deferredPrint.cancel();
