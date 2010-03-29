@@ -138,6 +138,7 @@ public class ImageUtil {
         Graphics2D graphics = image.createGraphics();
         for(Overlayable layer : overlays){
           graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, layer.getTransparency()));
+          //layer.getImage() calls the ImageUtil.readImage(url) on demand instead of allocating everything in memory beforehand.
           graphics.drawImage(layer.getImage(),0,0, null);
         }
         //dispose Graphics
