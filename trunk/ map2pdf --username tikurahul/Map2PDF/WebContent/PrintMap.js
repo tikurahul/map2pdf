@@ -1,6 +1,6 @@
 ﻿﻿dojo.declare(
     "PrintMap",
-    "Object",
+    null,
     {
         map: null,
         mapState: null,

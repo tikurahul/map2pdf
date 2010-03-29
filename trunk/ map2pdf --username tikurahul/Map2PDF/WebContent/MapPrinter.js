@@ -1,7 +1,7 @@
 ﻿﻿dojo.provide("MapPrinter");
 dojo.require("dojo.io.iframe");
 
-dojo.declare("MapPrinter", "Object", {
+dojo.declare("MapPrinter", null, {
   map : null,
   pdfUrl : null,
   deferredPrint : null,
