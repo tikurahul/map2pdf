@@ -24,12 +24,6 @@ public class OverlayLayer implements Overlayable {
       this.transparency = transparency;
       //a little housekeeping
       image = null;
-      try{
-        ImageUtil util = new ImageUtil();
-        image = util.readImage(url);
-      }catch(Exception e){
-        logger.log(Level.SEVERE, "Error reading image, " + e.getMessage());
-      }
     }
     
     public URL getImageUrl(){
@@ -41,7 +35,13 @@ public class OverlayLayer implements Overlayable {
     }
 
     public BufferedImage getImage(){
-      return image; 
+      try{
+        ImageUtil util = new ImageUtil();
+        image = util.readImage(url);
+      }catch(Exception e){
+        logger.log(Level.SEVERE, "Error reading image, " + e.getMessage());
+      }
+      return image;
     }
 
     public int getHeight() {
