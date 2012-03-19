@@ -19,7 +19,7 @@ public class OverlayLayer implements Overlayable {
     protected BufferedImage image;
     protected float transparency;
     
-    public OverlayLayer(URL imageUrl, float transparency){
+    public OverlayLayer(URL imageUrl, float transparency) throws Exception {
       this.url = imageUrl;
       this.transparency = transparency;
       //a little housekeeping
@@ -28,7 +28,7 @@ public class OverlayLayer implements Overlayable {
         ImageUtil util = new ImageUtil();
         image = util.readImage(url);
       }catch(Exception e){
-        logger.log(Level.SEVERE, "Error reading image, " + e.getMessage());
+        throw e;
       }
     }
     
