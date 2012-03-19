@@ -10,7 +10,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.net.URL;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
@@ -26,12 +25,12 @@ public class ImageUtil {
   
   private static final Logger logger = Logger.getLogger(ImageUtil.class.getName());
   
-  public BufferedImage readImage(URL url){
+  public BufferedImage readImage(URL url) throws Exception {
     BufferedImage image = null;
     try{
       image = ImageIO.read(url);
     }catch (Exception e){
-      logger.log(Level.SEVERE, "Error reading image, " + e.getMessage());
+      throw new Exception("Error reading image (" + url + "), " + e.getMessage(), e);
     }
     return image;
   }
@@ -111,7 +110,6 @@ public class ImageUtil {
         }
       }
     }catch (Exception e){
-      logger.log(Level.SEVERE, "Error Mosaicing Images, " + e.getMessage());
       throw e;
     }
     if(returnClip){
@@ -145,8 +143,7 @@ public class ImageUtil {
         graphics.dispose();
       }
     }catch (Exception e){
-      logger.log(Level.SEVERE, "Error Overlaying Images, " + e.getMessage());
-      throw e;
+      throw new Exception("Error Overlaying Images, " + e.getMessage(), e);
     }
     return image;
   }
@@ -178,8 +175,7 @@ public class ImageUtil {
       //dispose graphics
       graphics.dispose();
     } catch (Exception e){
-      logger.log(Level.SEVERE, "Error Generating Feature Images, " + e.getMessage());
-      throw e;
+      throw new Exception("Error Generating Feature Images, " + e.getMessage(), e);
     }
     return image;
   }

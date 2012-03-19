@@ -2,7 +2,6 @@ package org.gis.pdf.data;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.gis.pdf.json.JSONException;
@@ -35,19 +34,16 @@ public class MosaicLayer {
     this.col = col;
   }
   
-  public static MosaicLayer fromJson(JSONObject json){
+  public static MosaicLayer fromJson(JSONObject json) throws JSONException{
     MosaicLayer layer = null;
    try {
        layer = new MosaicLayer();
        layer.setUrl(new URL(json.getString("url")));
        layer.setRow(json.getInt("row"));
        layer.setCol(json.getInt("col"));
-   }
-   catch (JSONException e) {
-     logger.log(Level.CONFIG, "Error reading Json, " + e.getMessage());
    } catch (MalformedURLException e) {
-     logger.log(Level.CONFIG, "Invalid Image Url, " + e.getMessage());
-   }    
+     throw (JSONException)new JSONException("Invalid image url, " + e.getMessage()).initCause(e);
+   }
    return layer;
   }
 }

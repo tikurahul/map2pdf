@@ -3,10 +3,10 @@ package org.gis.pdf.data;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.gis.pdf.json.JSONArray;
+import org.gis.pdf.json.JSONException;
 import org.gis.pdf.json.JSONObject;
 import org.gis.pdf.util.ImageUtil;
 
@@ -24,7 +24,7 @@ public class MosaicCollection implements Overlayable {
   
   protected BufferedImage mosaic;
   
-  public MosaicCollection(List<MosaicLayer> layers, float transparency, ClipOptions clipOptions){
+  public MosaicCollection(List<MosaicLayer> layers, float transparency, ClipOptions clipOptions) throws Exception {
     this.layers = layers;
     this.transparency = transparency;
     this.clipOptions = clipOptions;
@@ -55,7 +55,7 @@ public class MosaicCollection implements Overlayable {
       ImageUtil util = new ImageUtil();
       mosaic =  util.mosaicImages(this);
     }catch (Exception e){
-      logger.log(Level.SEVERE, "Error Mosaicing Images, " + e.getMessage());
+      throw new Exception("Error Mosaicing Images, " + e.getMessage(), e);
     }
   }
   
@@ -134,24 +134,20 @@ public class MosaicCollection implements Overlayable {
       //clip options - optional
       ClipOptions options = ClipOptions.fromJson(json.optJSONObject("clipOptions"));
       collection = new MosaicCollection(layers, transparency, options);
+    }catch(JSONException je){
+      throw new Exception("Invalid input json, " + je.getMessage(), je);
     }catch(Exception e){
-      logger.log(Level.SEVERE, "Invalid input json, " + e.getMessage());
       throw e;
     }
     return collection;
   }
   
   public static List<MosaicCollection> fromJson(JSONArray json) throws Exception {
-	List<MosaicCollection> collections = new ArrayList<MosaicCollection>();
-	try{
-	 for(int i=0; i<json.length(); i++){
-	   MosaicCollection collection = fromJson(json.getJSONObject(i)); 
-	   collections.add(collection);
-	  }  
-	}catch(Exception e){
-	  logger.log(Level.SEVERE, "Invalid input json, " + e.getMessage());
-	  throw e; 
-	}
-	return collections;
+	  List<MosaicCollection> collections = new ArrayList<MosaicCollection>();
+    for(int i=0; i<json.length(); i++){
+      MosaicCollection collection = fromJson(json.getJSONObject(i)); 
+      collections.add(collection);
+    }  
+	  return collections;
   }
 }

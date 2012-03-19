@@ -30,7 +30,7 @@ public class FeatureLayer implements Overlayable {
   List<Color> colors;
   float transparency;
   
-  public FeatureLayer(List<Shape> shapes, List<Color> colors, float transparency, int width, int height){
+  public FeatureLayer(List<Shape> shapes, List<Color> colors, float transparency, int width, int height) throws Exception{
     ImageUtil util = new ImageUtil();
     this.shapes = shapes;
     this.width = width;
@@ -41,7 +41,7 @@ public class FeatureLayer implements Overlayable {
     try{
       image = util.generateFeatureRepresentation(this);
     }catch(Exception e){
-      logger.log(Level.SEVERE, "Error generating Feature Image", e);
+      throw new Exception("Error generating Feature Image", e);
     }
   }
   
