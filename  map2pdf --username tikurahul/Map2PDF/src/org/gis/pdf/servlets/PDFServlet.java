@@ -133,7 +133,7 @@ public class PDFServlet extends HttpServlet {
       BufferedImage image = util.overlayImages(overlayLayers);
 
       String pageTitle = request.getParameter("pageTitle");
-      pageTitle = PDFMacros.isEmpty(pageTitle) ? "Map2PDF" : pageTitle;
+      pageTitle = PDFMacros.isEmpty(pageTitle) ? "" : pageTitle;
 
       if (format == Format.IMAGE) {
         // return image
