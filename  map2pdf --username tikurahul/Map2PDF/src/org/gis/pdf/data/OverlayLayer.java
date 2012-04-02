@@ -4,16 +4,12 @@ import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.gis.pdf.json.JSONArray;
 import org.gis.pdf.json.JSONObject;
 import org.gis.pdf.util.ImageUtil;
 
 public class OverlayLayer implements Overlayable {
-  
-  private static final Logger logger = Logger.getLogger(OverlayLayer.class.getName());
   
     protected URL url;
     protected BufferedImage image;
@@ -59,8 +55,7 @@ public class OverlayLayer implements Overlayable {
         float transparency = (float) json.getDouble("transparency");
         layer = new OverlayLayer(new URL(url), transparency);
       }catch (Exception e){
-        logger.log(Level.SEVERE, "Invalid input json, " + e.getMessage());
-        throw e;
+        throw new Exception("Invalid input json, " + e.getMessage(), e);
       }
       return layer;
     }
@@ -73,8 +68,7 @@ public class OverlayLayer implements Overlayable {
     		layers.add(layer);
     	  }	
     	}catch (Exception e){
-    	  logger.log(Level.SEVERE, "Invalid input json, " + e.getMessage());
-          throw e;
+        throw new Exception("Invalid input json, " + e.getMessage(), e);
     	}
       return layers;
     }

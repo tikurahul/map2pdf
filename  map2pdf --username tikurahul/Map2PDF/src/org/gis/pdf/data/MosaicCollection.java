@@ -3,7 +3,6 @@ package org.gis.pdf.data;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.gis.pdf.json.JSONArray;
 import org.gis.pdf.json.JSONException;
@@ -11,8 +10,6 @@ import org.gis.pdf.json.JSONObject;
 import org.gis.pdf.util.ImageUtil;
 
 public class MosaicCollection implements Overlayable {
-  
-  private static final Logger logger = Logger.getLogger(MosaicCollection.class.getName());
   
   protected List<MosaicLayer> layers;
   protected ClipOptions clipOptions;

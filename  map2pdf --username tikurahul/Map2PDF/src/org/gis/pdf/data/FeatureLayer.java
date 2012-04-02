@@ -7,8 +7,6 @@ import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.gis.pdf.json.JSONArray;
 import org.gis.pdf.json.JSONObject;
@@ -17,8 +15,6 @@ import org.gis.pdf.util.ImageUtil;
 import com.lowagie.text.pdf.internal.PolylineShape;
 
 public class FeatureLayer implements Overlayable {
-  
-  private static final Logger logger = Logger.getLogger(FeatureLayer.class.getName());
   
   //shapes
   protected List<Shape> shapes;
@@ -153,8 +149,7 @@ public class FeatureLayer implements Overlayable {
       int height = json.getInt("height");
       layer = new FeatureLayer(shapes, colors,transparency, width, height);
     }catch(Exception e){
-      logger.log(Level.SEVERE, "Invalid input json, " + e.getMessage());
-      throw e;
+      throw new Exception("Invalid input json, " + e.getMessage(), e);
     }
     return layer;
   }
@@ -167,8 +162,7 @@ public class FeatureLayer implements Overlayable {
         layers.add(layer);
       }
     }catch(Exception e){
-      logger.log(Level.SEVERE, "Invalid input json, " + e.getMessage());
-      throw e;
+      throw new Exception("Invalid input json, " + e.getMessage(), e);
     }
     return layers;
   }

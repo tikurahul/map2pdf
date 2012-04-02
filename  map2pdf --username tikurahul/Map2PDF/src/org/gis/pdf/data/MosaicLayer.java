@@ -2,14 +2,11 @@ package org.gis.pdf.data;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Logger;
 
 import org.gis.pdf.json.JSONException;
 import org.gis.pdf.json.JSONObject;
 
 public class MosaicLayer {
-  
-  private static final Logger logger = Logger.getLogger(MosaicLayer.class.getName());
   
   protected URL url;
   protected int row;
